@@ -802,3 +802,75 @@ select * from employee;
 select * from dept2_public;
 --kh 계정에서 grant 해줘야 함.
 select * from kh.department;
+
+--20230717
+
+--over()
+--over(partition by A, order by A desc, rows between A and B) 
+--over 안 작성 순서 주의.
+
+--ORA-00937: 단일 그룹의 그룹 함수가 아닙니다
+--00937. 00000 -  "not a single-group group function"
+select deptno, empno, sal
+        , sum(sal) sumsal  --그룹함수 사용시 group by 사용해야함. 컬럼명들 그룹으로 묶어야 함.
+    from emp;
+    
+
+-- winodw - over(partition by ) >> 기존 group by 단점 개선
+select deptno, empno, ename, sal
+        , sum(sal) over(partition by deptno) sumsal  
+    from emp;
+-- window - over(order by ) >> 기존 rownum 대비 간결함
+select deptno, empno, ename, sal
+        ,rank() over(order by sal asc) ranksal  -- 같은 순위 이후 순위만큼 다음 순위가 커짐(1등 1등 1등 4등)
+        ,dense_rank() over(order by sal asc) dranksal   -- 같은 순위 이후 다음 순위값이 +1(1등 1등 1등 2등)
+        ,row_number() over(order by sal asc) rnsal  -- 기존 rownum과 동일함
+        ,rank() over(partition by deptno order by sal asc) dept_sal_rank
+    from emp
+    order by deptno
+;
+--rownum (위와 비슷한 결과. 순차적으로 번호를 매김. 같은 값이어도 숫자가 커짐.)
+select deptno, empno, ename, sal, rn ranksal
+    from (select rownum rn, t1.* 
+            from (select deptno, empno, ename, sal from emp order by sal asc) t1);
+-- rank(aaa) within group
+select rank(2450) within group (order by sal asc) clarksal
+    from emp; 
+
+
+--누적분산 CUM_DIST(), 비율 RATIO_TO_REPORT()
+--부서코드가 '30'인 직원의 이름, 급여, 급여에 대한 누적분산을 조회
+select ename, sal
+            , cume_dist() over(order by sal) sal_cume_dist
+            , ratio_to_report(sal) over() sal_ratio
+    from emp
+    where deptno = 30
+;
+--부서별 직원의 이름, 급여, 급여에대한 누적분산을 조회
+select ename, deptno, sal
+            , trunc(cume_dist() over(order by sal),2) sal_cume_dist
+            , trunc(ratio_to_report(sal) over(),2) sal_ratio
+            , trunc(cume_dist() over(partition by deptno order by sal),2) sal_cume_dist
+            , trunc(ratio_to_report(sal) over(partition by deptno)*100,2)||'%' sal_ratio
+    from emp
+    order by deptno
+;
+
+
+--rows between and
+select deptno, ename, sal
+        , first_value(ename) over(partition by deptno order by sal desc
+--                                  rows unbouded preceding
+                                    ) as dept_rich
+        , last_value(ename) over(partition by deptno order by sal desc
+                                    ) as dept_poor_error -- 오류                                    
+        , last_value(ename) over(partition by deptno order by sal desc
+-- window 절
+-- 생략시 현재 행이 작성되는 내용(값)만 알수 있음. 다음 행에 나올 값은 알지 못함.
+-- unbounded preceding : 윈도우의 첫행
+-- unbounded following : 윈도우의 마지막행
+-- 1 preceding : 현재행의 이전행부터
+-- 1 following : 현재행의 다음행까지
+                                  rows between current row and unbounded following
+                                    ) as dept_poor                                                  
+    from emp;

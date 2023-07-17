@@ -16,3 +16,11 @@ select seq_tb1_c1.nextval from dual;
 --접소고강련 설정 -> oracle 12 이후 버전에서 false 상태로 접속됨.
 alter session set "_ORACLE_SCRIPT" = true;
 create role role_scott_manager;
+
+
+--SQL활용(자체교제).pdf
+select deptno, empno, sal, sum(sal) over(partition by deptno) s_sal
+    from emp;
+select deptno, sum(sal) s_sal
+    from emp
+    group by deptno;

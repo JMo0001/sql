@@ -153,15 +153,11 @@ select student_name, count(student_name)
 ;
 
 --15 학번이 A112113인 김고운 학생의 년, 학기별 평점과 년도 별 누적 평점, 총 평점 ( 소수점 1자리까지 반올림)
-select substr(term_no,1,4) "년도", substr(term_no,5,2) "학기", avg(point) "평점" 
-    from tb_grade 
-    where student_no = 'A112113'
-    group by term_no
-;
-select substr(term_no,1,4) "년도", round(avg(point),1) "누적평점"
+select substr(term_no,1,4) "년도", nvl(substr(term_no,5,2),' ') "학기", round(avg(point),1) "누적평점"
     from tb_grade
     where student_no = 'A112113'
-    group by substr(term_no,1,4)
+    group by rollup(substr(term_no,1,4), substr(term_no,5,2))
+    order by "년도"
 ;
 
 --SQL03_select(option)
