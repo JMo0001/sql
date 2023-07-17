@@ -23,3 +23,9 @@ revoke connect, resource from kh;
 grant connect, resource to scott, kh;
 -- 21g xe버전, dba 추가
 grant connect, resource, dba to scott, kh;
+
+
+--select * from kh.dept;
+--안됨. create public synonym dept_public for kh.dept;
+create public synonym dept2_public for kh.department;
+select * from dept2_public;

@@ -27,12 +27,13 @@ rem OATES:     Created: 16-Feb-83
 --CONNECT SCOTT/TIGER
 
 --EMP-FK - DEPT-PK
+--drop 순서는 create 순서 반대
+--fk인 테이블을 먼저 drop
 DROP TABLE EMP;
 DROP TABLE DEPT;
-
 DROP TABLE BONUS;
 DROP TABLE SALGRADE;
-
+--pk 인 테이블을 먼저 craete
 CREATE TABLE DEPT
        (DEPTNO NUMBER(2) CONSTRAINT PK_DEPT PRIMARY KEY,
 	DNAME VARCHAR2(14) ,

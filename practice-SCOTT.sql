@@ -52,7 +52,7 @@ select empno, ename, substr(sal,1,2) as 급여
 --11. EMP테이블에서 사원번호가 홀수인 사원들을 조회
 select *
     from emp
-    where empno like '___1%' or empno like'___3%' or empno like'___5%' or empno like'___7%' or empno like'___9%'
+    where empno like '%1' or empno like'%3' or empno like'%5' or empno like'%7' or empno like'%9'
 ;
     
 --12. EMP테이블에서 사원명, 입사일 조회 (단, 입사일은 년도와 월을 분리 추출해서 출력)
@@ -96,3 +96,7 @@ select *
 ;
 --19. 오늘 날짜에서 년도만 추출
 select extract(year from sysdate)from dual;
+
+--20230712
+--실습 문항 풀이
+--3. 11. GRADE별로 평균급여에 10프로내외의 급여를 받는 사원명을 조회 - 정렬
