@@ -878,3 +878,32 @@ select deptno, ename, sal
     
 --20230718
 select empno, ename, sal, ntile(4) over(order by sal) from emp;
+
+desc dept;
+select * from dept;
+insert into dept values(10, 'account', 'new york');
+insert into dept values('&deptno', '&부서명', '&지역');
+--이전:insert into dept values('&deptno', '&부서명', '&지역')
+--신규:insert into dept values('60', 'aaa', 'bbb')
+commit;
+
+select * from emp
+    where
+--    where ename ='%SMITH'
+--      ename like '%SMITH'   -abcSMITH
+--      comm is null
+        ename = '&SMITH'
+;
+-- 비교 =, !=, <>, ^=, >, <, >=, <=
+-- treu false 
+--null
+select '&뭐라도입력' from dual;
+-- '&' - 작은따옴표 안에 & > escape 문자 : 특별한 역할 - 대체문자입력창을 띄워줌. >> where, select 여기저기 쓰임.
+-- 검색을 '&_' 로 검색하고 싶다면 : 
+-- like '%' / like '_' - escape 문자 > 특별한 역할  - %문자 0개 이상, _문자 1개
+-- 검색을 _%로 하고 싶으면 : like '$_$%'escape '$'
+
+set define off;
+select '&뭐라도입력' from dual;
+insert into dept values(80, 'R%D', 'new york');
+set define on;
