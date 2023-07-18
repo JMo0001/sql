@@ -210,3 +210,116 @@ begin
         end loop;
 end;
 /
+
+declare
+    n number := 1;
+begin
+    while n <= 5 loop
+        dbms_output.put_line(n);
+        n := n+1;
+    end loop;
+end;
+/
+
+declare
+    dup_empno exception;
+    pragma exception_init(dup_empno, -00001);
+begin
+    update employee
+    set emp_id = '&사번'
+    where emp_id = 200;
+exception
+    when dup_empno
+        then dbms_output.put_line('이미 존재하는 사번입니다.');
+end;
+/
+
+
+--procedure 만들기
+--사원번호를 전달 받아서 이름, 급여, 업무를 반환함.
+create or replace procedure pro_emp_arg_test
+            ( arg_empno in emp.empno%type, 
+                arg_ename out emp.ename%type,
+                arg_sal out emp.sal%type,
+                arg_job out emp.job%type)
+is
+
+begin
+    dbms_output.put_line('arg_empno: '|| arg_empno);
+    select ename, sal, job into arg_ename, arg_sal, arg_job
+        from emp
+        where empno= arg_empno;
+    dbms_output.put_line('arg_ename: '|| arg_ename);
+--procedure 는 return 없음.  > 대신 배개변수에 in / out 를 설정해서 out로 설정하면 그것이 return 됨.
+--function에는 return 있음.
+
+end;
+/
+
+----바인드 변수선언
+variable var_ename varchar2(30);
+variable var_sal varchar2(30);
+variable var_job varchar2(30);
+
+exec pro_emp_arg_test(7788 ,:var_ename, :var_sal, :var_job );
+
+print var_ename;
+
+
+
+create or replace procedure select_empid
+        ( arg_emp_id in employee.emp_id%type
+        , arg_emp_name out employee.emp_name%type
+        , arg_salary out employee.salary%type
+        , arg_bonus out employee.bonus%type)
+is
+begin
+    dbms_output.put_line('arg_emp_id: '|| arg_emp_id);
+    select emp_name, salary, bonus 
+    into arg_emp_name, arg_salary, arg_bonus
+        from employee
+        where emp_id = arg_emp_id;
+end;
+/
+
+--variable var_emp_id varchar2(30);
+variable var_emp_name varchar2(30);
+variable var_salary number;
+variable var_bonus number;
+
+exec select_empid(200, :var_emp_name, :var_salary, :var_bonus);
+
+desc employee;
+
+print var_emp_name;
+print var_salary;
+print var_bonus;
+select * from employee;
+
+
+
+create or replace procedure pro_all_emp
+is
+begin
+    for e in (select * from employee) loop
+--        dbms_output.put_line(e.emp_name);
+        select_empid(e.emp_id, e.emp_name, e.salary, e.bonus);
+    end loop;
+end;
+/
+exec pro_all_emp;
+
+
+create or replace procedure kh_gugudan
+is
+--    n number := 1;
+--    m number := 1;
+begin
+    for n in 2..9 loop
+        for m in 1..9 loop
+        dbms_output.put_line(n||'*'||m||'='||m*n);
+        end loop;
+    end loop;
+end;
+/
+exec kh_gugudan;

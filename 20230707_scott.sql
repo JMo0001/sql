@@ -907,3 +907,5 @@ set define off;
 select '&뭐라도입력' from dual;
 insert into dept values(80, 'R%D', 'new york');
 set define on;
+
+select * from user_source;
