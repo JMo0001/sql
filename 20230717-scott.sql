@@ -24,3 +24,15 @@ select deptno, empno, sal, sum(sal) over(partition by deptno) s_sal
 select deptno, sum(sal) s_sal
     from emp
     group by deptno;
+    
+--FIRST_VALUE 함수
+select deptno, ename, sal,
+        first_value(ename) over(partition by deptno order by sal desc rows unbounded preceding)
+        as DEPT_RICH
+        from emp;
+        
+--LAST_VALUE
+select deptno, ename, sal,
+        last_value(ename) over(partition by deptno order by sal desc rows between current row and
+            unbounded following) as dept_poor 
+    from emp;

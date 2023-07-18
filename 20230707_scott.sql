@@ -860,7 +860,7 @@ select ename, deptno, sal
 --rows between and
 select deptno, ename, sal
         , first_value(ename) over(partition by deptno order by sal desc
---                                  rows unbouded preceding
+--                                  rows unbounded preceding
                                     ) as dept_rich
         , last_value(ename) over(partition by deptno order by sal desc
                                     ) as dept_poor_error -- 오류                                    
@@ -874,3 +874,7 @@ select deptno, ename, sal
                                   rows between current row and unbounded following
                                     ) as dept_poor                                                  
     from emp;
+    
+    
+--20230718
+select empno, ename, sal, ntile(4) over(order by sal) from emp;

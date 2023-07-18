@@ -859,3 +859,5 @@ select * from emp;
 select * from dept2_public;
 
 grant select on department to scott;
+
+

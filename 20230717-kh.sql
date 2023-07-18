@@ -203,4 +203,11 @@ select emp_name, dept_code, salary,
             
 --Lead (조회할 범위, 다음행 수, 0 또는 컬럼명) : 다음 행의 값 조회
 select emp_name, dept_code, salary,
-        lead(salary,1,0) over(order by salary
+        lead(salary,1,0) over(order by salary) 다음값,
+        -- 1 : 다음 행 값, 0: 다음 행이 없으면 0 처리
+        lead(salary,1,salary) over(order by salary) "조회2",
+        -- 다음행이 없으면 현재 행의 값을 출력
+        lead(salary,1,salary) over(partition by dept_code order by salary) "조회3"
+        --부서 그룹 안에서의 다음 행값 출력
+        from employee;
+        

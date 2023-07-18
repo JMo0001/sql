@@ -252,7 +252,7 @@ select student_name, term_no
     where class_name = '인간관계론' and substr(term_no,1,4)='2007'    
 ;
 
---13 예체능 계열 과목 중 담당교수 없는 과목의 이름, 학과  ????
+--13 예체능 계열 과목 중 담당교수 없는 과목의 이름, 학과  ????  
 select class_name, department_name
     from tb_department d
     join tb_class c on (d.department_no = c.department_no)
