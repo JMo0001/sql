@@ -312,8 +312,8 @@ exec pro_all_emp;
 
 create or replace procedure kh_gugudan
 is
---    n number := 1;
---    m number := 1;
+    n number := 1;
+    m number := 1;
 begin
     for n in 2..9 loop
         for m in 1..9 loop
