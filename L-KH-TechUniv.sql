@@ -255,9 +255,9 @@ select student_name, term_no
 --13 예체능 계열 과목 중 담당교수 없는 과목의 이름, 학과  ????  
 select class_name, department_name
     from tb_department d
-    join tb_class c on (d.department_no = c.department_no)
-    left join tb_professor p on(p.department_no = d.department_no)
-    where category = '예체능' and p.department_no is null
+    join tb_class c using(department_no)
+    left join tb_class_professor p on(c.class_no = p.class_no)
+    where category = '예체능' and p.professor_no is null
 ;
 --14. 서반아어학과 지도교수게시. 학생이름, 지도교수 , 지도교수 미지정
 select student_name "학생이름", case 
@@ -508,8 +508,9 @@ delete from tb_grade
                             
 --------------------------------------------------------------------------------------------------------
 
---  강사님 풀이.
+--  20230720강사님 풀이.
 
+----------------------------춘대학교-----------------------
 --SQL03_select(option)
 --3-15
 

@@ -86,3 +86,54 @@ select class_no "과목번호", class_name "과목이름", bb "누적수강생�
         )
     where aaa<4 
 ;
+
+
+----------------------------------------------------------------
+
+--04_실습_KH_JOIN및서브쿼리_문제.pdf
+--4-11.
+
+select d.dept_title, sum(salary) "부서별 급여 합계"
+    from employee e
+    join department d on(e.dept_code = d.dept_id) 
+    group by dept_title
+    having sum(salary) > (select sum(salary)*0.2 from employee) 
+;
+
+select *
+    from (select dept_title, sum(salary) sal from employee e join department d on(e.dept_code = d.dept_id)
+            group by dept_title)
+    where sal > (select sum(salary)*0.2 from employee)     
+;
+
+--05_실습_SQL02_SELECT(Function)).pdf 
+--춘대학교-2-14
+select student_name, count(student_name)
+    from tb_student
+    group by student_name
+    having count(student_name) >= 2
+;
+
+--05_실습_SQL03_SELECT(Option).pdf
+--춘대학교-3-15
+select student_no "학번", s. student_name "이름", d. department_name "학과 이름", avg(point) "평점"
+    from tb_student s
+    join tb_department d using(department_no)
+    join tb_grade g using(student_no)
+    where s.absence_yn ='N'
+    group by student_no, student_name, department_name
+    having avg(point) >= 4.0
+;
+
+--춘대학교-3-16
+select class_no, class_name, avg(point)
+    from tb_class c
+    join tb_department d using(department_no)
+    join tb_grade g using(class_no)
+    where department_name = '환경조경학과' and class_type like '전공%'
+    group by class_no, class_name
+;
+select student_name, student_address
+    from tb_student
+    where department_no = (select department_no from tb_student where student_name = '최경희')
+;
