@@ -292,3 +292,368 @@ select student_name, student_address
     where department_no = (select department_no 
             from tb_student where student_name ='최경희')
 ;
+--18. 국어국문학과에서 총 평점이 가장 높은 학생의 이름과 학번
+select student_no, student_name
+    from (select student_no, s.student_name, avg(point) 
+                from tb_student s
+                join tb_department d using(department_no)
+                join tb_grade g using(student_no)
+                where department_name = '국어국문학과'
+                group by student_no, student_name
+                order by avg(point) desc)
+    where rownum = 1
+;
+--19. 춘 기술대학교의 환경조경학과가 속한 계열 학과들의 학과 별 전공과목 평점 파악
+select d.department_name "계열 학과명", round(avg(point),1) "전공평점"
+    from tb_department d
+    join tb_class c using(department_no)
+    join tb_grade g using(class_no)
+    where category = (select category from tb_department where department_name = '환경조경학과')
+    group by department_name
+;
+--1
+create table tb_category( name varchar2(10), use_yn char(1) default 'Y');
+--2
+create table tb_class_type( no varchar2(5) primary key, name varchar2(10));
+--3
+alter table tb_category add constraint c_name_pk primary key(name);
+--4
+alter table tb_class_type modify name not null;
+--5
+alter table tb_category modify name varchar2(20);
+alter table tb_class_type modify name varchar2(20);
+alter table tb_class_type modify no varchar(10);
+--6
+alter table tb_category rename column name to category_name;
+alter table tb_class_type rename column name to class_type_name;
+alter table tb_class_type rename column no to class_type_no;
+--7
+alter table tb_category rename constraint c_name_pk to pk_category_name;
+alter table tb_class_type rename constraint SYS_C008655 to pk_class_type_no;
+--8
+insert into tb_category values ('공학','Y');
+insert into tb_category values ('자연과학','Y');
+insert into tb_category values ('의학','Y');
+insert into tb_category values ('예체능','Y');
+insert into tb_category values ('인문사회','Y');
+commit;
+--9
+alter table tb_department add constraint  fk_department_category foreign key (category) references tb_category( category_name);
+--10
+create or replace view "VW_학생일반정보" (학번, 학생이름, 주소)
+            as select student_no, student_name, student_address
+                    from tb_student
+;
+--11
+create or replace view "VW_지도면담" (학생이름, 학과이름, 지도교수이름)
+            as select s.student_name, d.department_name, p.professor_name
+                    from tb_student s
+                    join tb_department d using (department_no)
+                    join tb_professor p on (COACH_PROFESSOR_NO = professor_no)
+                    order by department_name
+;
+--12
+create or replace view "VW_학과별학생수"
+            as select d.department_name, count(student_no) student_count
+                    from tb_department d
+                    join tb_student using(department_no)
+                    group by department_name
+;
+--13
+update VW_학생일반정보 
+    set 학생이름 = '박준모' where 학번 = 'A213046';
+--14
+create or replace view "VW_학생일반정보" (학번, 학생이름, 주소)
+            as select student_no, student_name, student_address
+                    from tb_student
+                    with read only
+;
+--15        ????
+create or replace view "VW_과목별_누적_수강인원" 
+            as select *
+               from (select class_no, class_name, count(g.student_no) bb, rank() over(order by count(g.student_no) desc) aaa
+                        from tb_class c
+                        join tb_grade g using(class_no)
+                        group by class_no, class_name
+                    )
+    where aaa<4
+;
+select class_no "과목번호", class_name "과목이름", bb "누적수강생수(명)"
+    from (select class_no, class_name, count(g.student_no) bb, 
+                    rank() over(order by count(g.student_no) desc) aaa
+                from tb_class c
+                join tb_grade g using(class_no)
+                group by class_no, class_name
+        )
+    where aaa<4 
+;
+select substr(to_char(sysdate,'yyyymmdd'),1,4) - substr(term_no,1,4) from tb_grade
+;
+select to_char(sysdate,'yyyymmdd') from dual;
+select substr(to_char(sysdate,'yyyymmdd'),1,4) from dual;
+select substr(term_no,1,4) from tb_grade;
+select count(*) from tb_grade;
+select (substr(to_char(sysdate,'yyyymmdd'),1,4) - substr(term_no,1,4) ) from tb_grade;
+
+select uq_term curr_term from (select rownum rn, uq_term from (select distinct substr(term_no,1,4) uq_term from tb_grade  order by uq_term desc)) tb1 where rn < 5
+;
+
+select class_no, class_name, cnt 
+    from (select rownum rn2, class_no, cnt  
+            from (select class_no, count(*) cnt 
+                    from tb_grade
+                    where substr(term_no,1,4) in 
+                        (select uq_term curr_term 
+                            from (select rownum rn1, uq_term 
+                                    from (select distinct substr(term_no,1,4) uq_term 
+                                            from tb_grade  order by uq_term desc)) tb1 
+                            where rn1 <= 5)  --최근 5년
+                    group by class_no
+                    order by cnt desc
+                ) 
+        ) tb1
+   join tb_class using (class_no)
+    where rn2 <= 3;
+
+--이전 답안
+select extract(year from sysdate)-1 from dual;
+-- 문제에서 원한 것
+select * from 
+(
+SELECT 과목번호, 과목이름, "누적수강생수(명)", rownum rn
+FROM (SELECT CLASS_NO 과목번호, CLASS_NAME 과목이름, COUNT(*) "누적수강생수(명)"
+      FROM TB_GRADE
+           JOIN TB_CLASS USING(CLASS_NO)
+      WHERE TERM_NO LIKE '2009%'
+      -- substr(TERM_NO,1,4) between extract(year from sysdate)-2 and extract(year from sysdate)
+            OR TERM_NO LIKE '2008%'
+            OR TERM_NO LIKE '2007%'
+      GROUP BY CLASS_NO, CLASS_NAME
+      ORDER BY 3 DESC)
+) tb1
+WHERE rn <= 3;
+
+-- 문제에 나온 결과와 똑같은 결과 만들기
+SELECT 과목번호, 과목이름, "누적수강생수(명)"
+FROM (SELECT CLASS_NO 과목번호, CLASS_NAME 과목이름, COUNT(*) "누적수강생수(명)"
+      FROM TB_GRADE
+           JOIN TB_CLASS USING(CLASS_NO)
+      WHERE TERM_NO LIKE '2009%'
+            OR TERM_NO LIKE '2008%'
+            OR TERM_NO LIKE '2007%'
+            OR TERM_NO LIKE '2006%'
+            OR TERM_NO LIKE '2005%'
+      GROUP BY CLASS_NO, CLASS_NAME
+      ORDER BY 3 DESC)
+WHERE ROWNUM <= 3;
+
+
+
+
+
+---05_SQL05_DML.pdf
+
+--1
+insert into tb_class_type values('01','전공필수');
+insert into tb_class_type values('02','전공선택');
+insert into tb_class_type values('03','교양필수');
+insert into tb_class_type values('04','교양선택');
+insert into tb_class_type values('05','논문지도');
+commit;
+
+--2
+create table "TB_학생일반정보" as (select student_no "학번", student_name "학생이름", student_address "주소" 
+                                        from tb_student);
+
+--3
+create table "TB_국어국문학과" as (select student_no "학번", student_name "학생이름",
+                                    extract (year from to_date(substr(student_ssn,1,6),'rrmmdd')) "출생년도",
+                                    professor_name "교수이름" 
+                                    from tb_student
+                                    join tb_professor on(COACH_PROFESSOR_NO = professor_no)
+                                );
+                                    
+--4
+update tb_department set capacity = floor(capacity*1.1);
+
+--5
+update tb_student set student_address = '서울시 종로구 숭인동 181-21' 
+    where student_no = 'A413042';
+
+--6
+update tb_student set student_ssn = substr(student_ssn,1,6);
+alter table tb_student modify student_ssn varchar(6);
+
+--7
+update tb_grade set point =3.5
+    where student_no = (select student_no 
+                            from tb_student s
+                            join tb_department d using(department_no)
+                            where s.student_name = '김명훈' and d.department_name = '의학과')
+        and class_no = (select class_no
+                            from tb_class
+                            where class_name = '피부생리학')
+        and term_no = '200501'
+;
+
+--8
+delete from tb_grade
+        where student_no in (select student_no 
+                            from tb_grade 
+                            join tb_student using(student_no) 
+                            where ABSENCE_YN = 'Y');
+                            
+                            
+                            
+                            
+--------------------------------------------------------------------------------------------------------
+
+--  강사님 풀이.
+
+--SQL03_select(option)
+--3-15
+
+select student_no, avg(point) avgpoint
+    from (select * from tb_student where absence_yn<>'Y') s -- tb_student 테이블 안에서 휴학중이 아닌 사람만 골라냄.
+    join tb_department d using (department_no)
+    join tb_grade g using (student_no)   -- s+d에다가 g를 join. >> s의 student_no랑 겹치는 컬럼.
+    group by student_no
+    having avg(point) >= 4.0;   --avgpoint 별칭을 쓸 수 없음.  --avg(point) 계산을 having에서 1번, select에서 1번 총 2번 함.
+---------------------
+-- 서브쿼리 풀이.
+select * from
+(select student_no, avg(point) avgpoint
+    from (select * from tb_student where absence_yn<>'Y') s -- tb_student 테이블 안에서 휴학중이 아닌 사람만 골라냄.
+    join tb_department d using (department_no)
+    join tb_grade g using (student_no)   -- s+d에다가 g를 join. >> s의 student_no랑 겹치는 컬럼.
+    group by student_no)
+    where avgpoint >= 4.0
+;
+------------------------------------
+select  student_no, student_name, department_name, avg(point) avgpoint
+    from (select * from tb_student where absence_yn<>'Y') s -- tb_student 테이블 안에서 휴학중이 아닌 사람만 골라냄.
+            join tb_department d using (department_no)
+            join tb_grade g using (student_no) 
+    group by student_no, s.student_name, d.department_name  --동명2인 있을수 있으니 student_no 필요.
+;
+select s.student_name, 
+            d.department_name, 
+            round(avg(point),1) avgpoint   --화면에 나올떄만 round
+    from (select * from tb_student where absence_yn<>'Y') s -- tb_student 테이블 안에서 휴학중이 아닌 사람만 골라냄.
+            join tb_department d using (department_no)
+            join tb_grade g using (student_no)   -- s+d에다가 g를 join. >> s의 student_no랑 겹치는 컬럼.
+--student_no, student_name, d.departemtn_name는 join 결과 같은 값으로 묶임. select 사용 가능하도록 group by로 묶음.
+    group by student_no, s.student_name, d.department_name  --동명2인 있을수 있으니 student_no 필요.
+    having avg(point) >= 4.0    --round 하면 안됨. 3.99 가 4.0으로 반올림 되기 때문에 추출되선 안됨.
+    --평점에 필요한 grade는 join 필요. department join 해야 하나?
+    -- 4.0 미만인데 join 해놀 필요가 있나? ㅇㅇ. 스칼라 서브쿼리 쓰면? 아래 참고.
+;
+----------
+select s.student_name, 
+--      group by 사용시 group by에 사용한 컬럼명만 select에 사용할 수 있음 + 그룹함수 사용 가능. >> 스칼라 서브쿼리? 안됨.
+        (select department_name from tb_department t where t.department_no = s.department_no) department_name
+--  메인쿼리에서 group by 에 묶인 컬럼명, 그룹함수 밖에 select에 못쓴다. >> 스칼라 서브쿼리 사용이 안됨.
+        , round(avg(point),1) avgpoint   --화면에 나올떄만 round
+    from (select * from tb_student where absence_yn<>'Y') s 
+            join tb_grade g using (student_no)  
+    group by student_no, s.student_name 
+    having avg(point) >= 4.0
+    --평점에 필요한 grade는 join 필요. department join 해야 하나?
+    -- 4.0 미만인데 join 해놀 필요가 있나? >> 스칼라 서브쿼리 사용하면? 4.0인 인원들 중에서 골라올 수 있다.
+;
+
+
+----------------------------------------------------------------------------------------------------------
+
+--3-18
+select tb2.* from
+(select rownum rn, tb1.*
+    from (select student_name, avg(point) avgpoint
+            from (select * from tb_student where department_no = 
+                                                (select department_no from tb_department 
+                                                    where department_name = '국어국문학과')
+                    ) s
+            join tb_grade g using(student_no)
+            group by student_no, student_name
+            order by avgpoint desc
+        ) tb1
+) tb2      
+where rn =1
+;
+--------------------------------------------KH---------------------------------------------------------
+--04_KH_join및 서브쿼리 문제
+--4-10
+select tb2.* from
+(
+select tb1.*, rownum rn from
+(
+select emp_id, emp_name,(select dept_title from department d where dept_id = e.dept_code ) "부서 명",job_code
+        , hire_date, salary*12+(salary*12*nvl(bonus, 0)) salrank
+    from employee e
+    order by salrank) tb1
+    ) tb2
+where rn <= 5
+;
+select emp_id, salary*12+(salary*12*nvl(bonus, 0)) salrank from employee order by salrank desc; 
+select decode(bonus,null,0,bonus) from employee;
+    
+-- 입사일 순서가 빠른 사람 3명을 조회해 주세요.
+select * from
+(
+select rownum rn, tb1.* from
+(
+select emp_id, emp_name, hire_date "입사일"
+    from employee
+    order by "입사일"
+    )tb1
+)tb2
+where rn <= 3
+
+;
+select tb1.* from
+(
+select * from employee order by hire_date asc
+)tb1
+where rownum <=3
+;
+
+------------------------------------춘대학교------------------------------------------------------------
+--SQL_04_DDL
+--15
+
+desc tb_class;
+desc tb_student;
+-----------------------
+--04-15
+--최근 3년
+select term curr_term from(select distinct substr(term_no,1,4) term from tb_grade order by term desc)tb1 where rownum <= 3
+;
+--수강인원 (class_no 별로)
+select count(*) cnt, class_no
+    from tb_grade
+    group by class_no
+    order by cnt desc
+;
+--수강인원 top3==> N-Top 방식 (class_no 별)
+select * from
+(
+select count(*) cnt, class_no from tb_grade group by class_no order by cnt desc
+)
+where rownum <=3
+;
+
+--수강인원을 구하기 전, 최근 3년이라는 조건으로 걸러낸 후에 수강인원 구해야 함.
+select cnt, class_no, (select class_name from tb_class where class_no=tb2.class_no) class_name from
+(
+select rownum rn, tb1.* from
+(
+select count(*) cnt, class_no
+    from tb_grade
+    where substr(term_no,1,4) in 
+    (select term curr_term from(select distinct substr(term_no,1,4) term from tb_grade order by term desc)tb1 where rownum <= 5)
+    group by class_no
+    order by cnt desc
+    )tb1
+)tb2
+where rn <=3
+;
