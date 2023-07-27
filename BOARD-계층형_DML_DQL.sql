@@ -36,6 +36,7 @@ insert into BOARD values(SEQ_BOARD_BNO.nextval, '1-답', '1-답', default, 'kh1'
 update board set BRE_STEP = BRE_STEP +1 where BRE_STEP > 1;
 insert into BOARD values(SEQ_BOARD_BNO.nextval, '1-답', '1-답', default, 'kh1', 1, 1+1 ,1+1)
 ;
+
 --n 글의 답글
 update board set BRE_STEP = BRE_STEP +1 
     where BRE_STEP > (SELECT BRE_STEP FROM BOARD WHERE BNO = '&n글')
@@ -48,9 +49,12 @@ insert into BOARD values (SEQ_BOARD_BNO.nextval, '&n글 제목', '&n글 내용',
     )
 ;
 
+desc board;
 
 
-select * from board order by bref desc, bre_step asc;
+
+select BNO, BTITLE, to_char(BWRITE_DATE), MID, BREF, BRE_LEVEL, BRE_STEP
+    from board order by bref desc, bre_step asc;
 
 
 commit
