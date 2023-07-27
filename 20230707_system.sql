@@ -23,6 +23,7 @@ revoke connect, resource from kh;
 grant connect, resource to scott, kh;
 -- 21g xe버전, dba 추가
 grant connect, resource, dba to scott, kh;
+grant connect, resource, dba to khl, jmo;
 
 
 --select * from kh.dept;
