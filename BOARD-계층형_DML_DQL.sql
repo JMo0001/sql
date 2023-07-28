@@ -59,3 +59,13 @@ select BNO, BTITLE, to_char(BWRITE_DATE), MID, BREF, BRE_LEVEL, BRE_STEP
 
 commit
 ;
+
+--원본글
+--insert into BOARD values(SEQ_BOARD_BNO.nextval, ?, ?, default, ?, SEQ_BOARD_BNO.nextval, 0,0)
+----n 글의 답글
+
+--update board set BRE_STEP = BRE_STEP +1 where BRE_STEP > (SELECT BRE_STEP FROM BOARD WHERE BNO = ?) and BREF = (select bref from board where bno = ?)
+
+--insert into BOARD values (SEQ_BOARD_BNO.nextval, ?, ?, default, ?, (select bref from board where bno = ?), (select bre_level+1 from board where bno = ?), (select bre_step+1 from board where bno = ?))
+    
+;
