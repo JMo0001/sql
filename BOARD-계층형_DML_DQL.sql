@@ -68,3 +68,8 @@ commit
 
 --insert into BOARD values (SEQ_BOARD_BNO.nextval, ?, ?, default, ?, (select bref from board where bno = ?), (select bre_level+1 from board where bno = ?), (select bre_step+1 from board where bno = ?))
     
+
+select * from attache_file;
+select * from board tb join attache_file ta using (bno);
+
+select bno,btitle,bwrite_date,bcontent,mid,bref,bre_level,bre_step, filepath from board tb join attache_file ta using(bno);
