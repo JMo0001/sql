@@ -6,6 +6,8 @@ create user jmo identified by jmo;
 
 grant connect, resource to kh2;
 grant connect, resource to khl;
+grant connect, resource to stream;
+grant dba to stream;
 
 --connect -> 롤 이름
 --권한들의 묶음 = 롤
@@ -20,3 +22,6 @@ grant role_manager to khl;
 
 revoke create view from role_manager;
 -- 위에 준 권한 중 create view 권한 회수
+
+create user stream identified by stream;
+grant role_manager to stream;
